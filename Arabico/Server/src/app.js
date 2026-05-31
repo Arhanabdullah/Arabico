@@ -1,4 +1,5 @@
 const app = require('express');
+require('dotenv').config();
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
