@@ -1,11 +1,13 @@
-const app = require('express');
+const express = require('express');
 require('dotenv').config();
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const authRoutes = require('./routes/auth.route');
 
 
+const app = express();
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(cookieParser());
@@ -15,6 +17,7 @@ app.use(rateLimit({
     max: 100
 }));
 app.use(express.json());
+app.use('/api/auth', authRoutes);
 
 
 module.exports = app;
