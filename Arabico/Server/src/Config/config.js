@@ -10,12 +10,16 @@ if(!process.env.JWT_SECRET_KEY){
 if(!process.env.PORT){
     throw new Error("PORT is not defined in environment variables, using default port 3000")
 }
+if(process.env.NODE_ENV === 'production' && !process.env.SECURE_COOKIE){
+    throw new Error("SECURE_COOKIE is not defined in environment variables for production environment")
+}
 
 
 const config = {
     mongoURI: process.env.MONGO_URI,
     port: process.env.PORT || 3000,
-    jwtSecretKey: process.env.JWT_SECRET_KEY
+    jwtSecretKey: process.env.JWT_SECRET_KEY,
+    secureCookie: process.env.SECURE_COOKIE === 'true' // Convert string to boolean
 }
 
 
