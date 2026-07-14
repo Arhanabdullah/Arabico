@@ -19,8 +19,9 @@ const config = {
     mongoURI: process.env.MONGO_URI,
     port: process.env.PORT || 3000,
     jwtSecretKey: process.env.JWT_SECRET_KEY,
-    secureCookie: process.env.SECURE_COOKIE === 'true' // Convert string to boolean
-}
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
+    secureCookie: process.env.SECURE_COOKIE === "true",
+};
 
 
 module.exports = config
