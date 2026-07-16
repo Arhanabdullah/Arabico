@@ -18,6 +18,4 @@ app.use(rateLimit({
 }));
 app.use(express.json());
 app.use('/api/auth', authRoutes);
-
-
 module.exports = app;
