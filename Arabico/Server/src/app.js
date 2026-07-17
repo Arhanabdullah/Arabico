@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth.route');
+const categoryRoutes = require('./routes/category.route');
 
 
 const app = express();
@@ -18,4 +19,5 @@ app.use(rateLimit({
 }));
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
 module.exports = app;
