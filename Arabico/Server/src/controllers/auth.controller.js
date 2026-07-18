@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const generateToken = require('../utils/generateToken');
+const setTokenCookie = require('../utils/setTokenCookie');
 
 async function register(req, res) {
     try {
@@ -22,7 +23,7 @@ async function register(req, res) {
         setTokenCookie(res, token);
         return res.status(201).json({
             message: 'User registered successfully',
-            user: { id: newUser._id, username: newUser.username, email: newUser.email }
+            user: { id: newUser._id, username: newUser.username, email: newUser.email, role: newUser.role }
         });
     } catch (error) {
         return res.status(500).json({ message: 'Server error', error: error.message });
@@ -46,7 +47,7 @@ async function login(req, res) {
         setTokenCookie(res, token);
         return res.status(200).json({
             message: 'User logged in successfully',
-            user: { id: existingUser._id, username: existingUser.username, email: existingUser.email }
+            user: { id: existingUser._id, username: existingUser.username, email: existingUser.email, role: existingUser.role }
         });
     } catch (error) {
         return res.status(401).json({ message: error.message });
