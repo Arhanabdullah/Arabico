@@ -8,7 +8,7 @@ const { authorize } = require('../middlewares/role.middleware');
 route.post('/', categoryValidationRules, validateResults, authenticate, authorize('cashier'), categoryController.create);
 route.get('/', authenticate, categoryController.getAll);
 route.get('/:id', authenticate, categoryController.getById);
-route.put('/:id', categoryValidationRules, validateResults, authenticate, authorize('admin'), categoryController.update);
-route.delete('/:id', authenticate, authorize('admin'), categoryController.deleteCategory);
+route.put('/:id', categoryValidationRules, validateResults, authenticate, authorize('cashier'), categoryController.update);
+route.delete('/:id', authenticate, authorize('cashier'), categoryController.deleteCategory);
 
 module.exports = route;
