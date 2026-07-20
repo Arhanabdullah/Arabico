@@ -1,5 +1,5 @@
 const app = require('./src/app')
-const connectDB = require('./src/Config/database')
+const {connectDB} = require('./src/Config/database')
 
 // Connect to the database
 connectDB()
