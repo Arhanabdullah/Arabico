@@ -53,4 +53,15 @@ const loginUserValidationRules = [
     validateResults,
 ];
 
-module.exports = { registerUserValidationRules, loginUserValidationRules, validateResults }
+const updateUserRoleValidationRules = [
+    body("role")
+        .notEmpty()
+        .withMessage("Role is required")
+        .isString()
+        .withMessage("Role must be a string")
+        .isIn(["admin", "manager", "cashier", "kitchen"])
+        .withMessage("Role must be either 'admin', 'manager', 'cashier', or 'kitchen'"),
+    validateResults,
+];
+
+module.exports = { registerUserValidationRules, loginUserValidationRules, updateUserRoleValidationRules, validateResults }
