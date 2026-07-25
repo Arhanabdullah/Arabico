@@ -36,7 +36,9 @@ async function login(req, res) {
     if (!existingUser) {
         return res.status(400).json({ message: 'No User found!' });
     }
-    const isMatch = await bcrypt.compare(password, existingUser.password);
+    const hashedPassword = await bcrypt.hashSync(password, 10);
+    const isMatch = await bcrypt.compare(password, hashedPassword);
+
     if (!isMatch) {
         return res.status(400).json({ message: 'Invalid email or password' });
     }
