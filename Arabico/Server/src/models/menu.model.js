@@ -3,18 +3,22 @@ const mongoose = require('mongoose');
 const menuSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true, 
+        index: true,
     },
     description: {
         type: String,
     },
     price: {
         type: Number,
-        required: true
+        required: true,
+        min: [0, 'Price must be a positive number']
     },
     category: {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Category'
     },
     image: {
         type: String,
