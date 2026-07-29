@@ -4,9 +4,13 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+/**
+ * Importing routes
+ */
 const authRoutes = require('./routes/auth.route');
 const userRoute = require('./routes/user.route');
 const categoryRoutes = require('./routes/category.route');
+const menuRoutes = require('./routes/menu.route');
 
 
 const app = express();
@@ -22,4 +26,5 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoute)
+app.use('/api/menus', menuRoutes);
 module.exports = app;

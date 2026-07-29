@@ -12,7 +12,7 @@ const createMenuValidationRules = [
         .optional()
         .isString()
         .withMessage("Description must be a string")
-        .isLength({ max: 255 })
+        .isLength({ min: 25,max: 255 })
         .withMessage("Description must be less than 255 characters"),
     body("price")
         .notEmpty()
