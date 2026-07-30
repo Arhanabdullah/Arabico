@@ -1,6 +1,13 @@
 const categoryModel = require('../models/category.model');
 const menuModel = require('../models/menu.model');
 
+
+/**
+ * Creates a new menu item in the database
+ * POST method
+ * POST /api/menus
+ * Protected route, requires authentication and admin role
+ */
 async function createMenu(req, res) {
 
     const { name, description, price, category, isAvailable } = req.body;
@@ -41,5 +48,26 @@ async function createMenu(req, res) {
         });
     }
 }
+/**
+ * Retrieves all menus from the database
+ * GET method
+ * GET /api/menus
+ * Protected route, requires authentication
+ */
+async function getAllMenus(req, res) {
+    try {
+        const menus = await menuModel.find().populate('category', 'name');
+        return res.status(200).json({
+            success: true,
+            data: menus
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+}
 
-module.exports = { createMenu }
+module.exports = { createMenu, getAllMenus }
