@@ -3,6 +3,7 @@ const categoryModel = require('../models/category.model');
  * Create a new category
  * POST method: /api/categories/
  * Request body: { name, description, isActive }
+ * Protected route, requires authentication and admin role
  */
 async function create(req, res) {
     const { name, description, isActive } = req.body;
@@ -26,6 +27,8 @@ async function create(req, res) {
 /**
  * Get all categories
  * GET method: /api/categories/
+ * no request body
+ * not a protected route
  */
 async function getAll(req, res) {
     const categories = await categoryModel.find();
@@ -35,7 +38,12 @@ async function getAll(req, res) {
     });
 
 }
-
+/**
+ * Get a category by ID
+ * GET method: /api/categories/:id
+ * no request body
+ * not a protected route
+ */
 async function getById(req, res) {
     const { id } = req.params;
     const category = await categoryModel.findById(id);
@@ -51,7 +59,12 @@ async function getById(req, res) {
         isActive: category.isActive
     });
 }
-
+/**
+ * Update a category by ID
+ * PUT method: /api/categories/:id
+ * Request body: { name, description, isActive }
+ * Protected route, requires authentication and admin role
+ */
 async function update(req, res) {
     const { id } = req.params;
     const { name, description, isActive } = req.body;
@@ -74,7 +87,11 @@ async function update(req, res) {
         isActive: updatedCategory.isActive
     });
 }
-
+/**
+ * Delete a category by ID
+ * DELETE method: /api/categories/:id
+ * Protected route, requires authentication and admin role
+ */
 
 async function deleteCategory(req, res) {
     const { id } = req.params;

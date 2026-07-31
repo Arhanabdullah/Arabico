@@ -65,9 +65,41 @@ async function getAllMenus(req, res) {
         console.error(error);
         res.status(500).json({
             success: false,
+            count: menus.length,
+            data: menus,
             message: 'Internal server error'
         });
     }
 }
 
-module.exports = { createMenu, getAllMenus }
+/**
+ * Retrieves a menu by its ID from the database
+ * GET method
+ * GET /api/menus/:id
+ * not a protected route  
+ */
+
+async function getMenuById(req, res) {
+    const { id } = req.params;
+    try {
+        const menu = await menuModel.findById(id).populate('category', 'name');
+        if (!menu) {
+            return res.status(404).json({
+                success: false,
+                message: 'Menu not found'
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            data: menu
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+}
+
+module.exports = { createMenu, getAllMenus, getMenuById }
