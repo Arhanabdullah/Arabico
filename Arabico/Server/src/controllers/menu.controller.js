@@ -1,7 +1,6 @@
 const categoryModel = require('../models/category.model');
 const menuModel = require('../models/menu.model');
 
-
 /**
  * Creates a new menu item in the database
  * POST method
@@ -52,21 +51,25 @@ async function createMenu(req, res) {
  * Retrieves all menus from the database
  * GET method
  * GET /api/menus
- * Protected route, requires authentication
+ * Public route, does not require authentication
  */
 async function getAllMenus(req, res) {
     try {
-        const menus = await menuModel.find().populate('category', 'name');
+        const menus = await menuModel
+            .find()
+            .populate("category", "name")
+            .select("name description price image category isAvailable")
+            .lean();
+
         return res.status(200).json({
             success: true,
+            count: menus.length,
             data: menus
         });
     } catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
-            count: menus.length,
-            data: menus,
             message: 'Internal server error'
         });
     }
@@ -76,13 +79,17 @@ async function getAllMenus(req, res) {
  * Retrieves a menu by its ID from the database
  * GET method
  * GET /api/menus/:id
- * not a protected route  
+ * Public route, does not require authentication  
  */
 
 async function getMenuById(req, res) {
     const { id } = req.params;
     try {
-        const menu = await menuModel.findById(id).populate('category', 'name');
+        const menu = await menuModel
+            .findById(id)
+            .populate("category", "name")
+            .select("name description price image category isAvailable")
+            .lean();
         if (!menu) {
             return res.status(404).json({
                 success: false,
@@ -102,4 +109,100 @@ async function getMenuById(req, res) {
     }
 }
 
-module.exports = { createMenu, getAllMenus, getMenuById }
+/**
+ * Updates a menu item in the database
+ * PATCH method
+ * PATCH /api/menus/:id
+ * Protected route, requires authentication and admin role
+ */
+async function updateMenu(req, res) {
+    const { id } = req.params;
+    const { name, description, price, category, isAvailable } = req.body;
+
+    try {
+        const categoryExists = await categoryModel.findById(category);
+        if (!categoryExists) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        const existingMenu = await menuModel.findOne({
+            name: new RegExp(`^${name}$`, "i"),
+            _id: { $ne: id }
+        });
+        if (existingMenu) {
+            return res.status(409).json({
+                success: false,
+                message: 'Menu with this name already exists'
+            });
+        }
+
+        const updatedMenu = await menuModel.findByIdAndUpdate(
+            id,
+            {
+                name,
+                description,
+                price,
+                category,
+                isAvailable
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).populate("category", "name");
+
+        if (!updatedMenu) {
+            return res.status(404).json({
+                success: false,
+                message: 'Menu not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Item updated successfully',
+            data: updatedMenu
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+}
+
+/**
+ * Deletes a menu item from the database
+ * DELETE method
+ * DELETE /api/menus/:id
+ * Protected route, requires authentication and admin role
+ */
+
+async function deleteMenu(req, res) {
+    const { id } = req.params;
+    try {
+        const deletedMenu = await menuModel.findByIdAndDelete(id);
+        if (!deletedMenu) {
+            return res.status(404).json({
+                success: false,
+                message: 'Menu not found'
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'Item deleted successfully'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+}
+
+module.exports = { createMenu, getAllMenus, getMenuById, updateMenu, deleteMenu }

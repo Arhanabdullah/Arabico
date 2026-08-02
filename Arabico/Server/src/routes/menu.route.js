@@ -9,5 +9,7 @@ const { authorize } = require('../middlewares/role.middleware');
 route.post('/', createMenuValidationRules, validateResults, authenticate, authorize('admin'), menuController.createMenu);
 route.get('/', menuController.getAllMenus);
 route.get('/:id', menuController.getMenuById);
+route.put('/:id', createMenuValidationRules, validateResults, authenticate, authorize('admin'), menuController.updateMenu);
+route.delete('/:id', authenticate, authorize('admin'), menuController.deleteMenu);
 
 module.exports = route;
