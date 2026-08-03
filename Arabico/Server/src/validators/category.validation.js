@@ -1,7 +1,6 @@
 const { body, validationResult } = require('express-validator')
 const { validateResults } = require('./user.validation')
 
-
 const categoryValidationRules = [
     body("name")
         .trim()
