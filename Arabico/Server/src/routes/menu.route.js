@@ -4,9 +4,10 @@ const authenticate = require('../middlewares/auth.middleware');
 const { createMenuValidationRules } = require('../validators/menu.validation');
 const { validateResults } = require('../validators/user.validation');
 const { authorize } = require('../middlewares/role.middleware');
+const { upload } = require('../middlewares/multer.middleware');
 
 
-route.post('/', createMenuValidationRules, validateResults, authenticate, authorize('admin'), menuController.createMenu);
+route.post('/', authenticate, authorize('admin'), upload.single('image'), createMenuValidationRules, validateResults, menuController.createMenu);
 route.get('/', menuController.getAllMenus);
 route.get('/:id', menuController.getMenuById);
 route.put('/:id', createMenuValidationRules, validateResults, authenticate, authorize('admin'), menuController.updateMenu);

@@ -5,7 +5,7 @@ const menuSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true, 
+        trim: true,
         index: true,
     },
     description: {
@@ -22,7 +22,14 @@ const menuSchema = new mongoose.Schema({
         ref: 'Category'
     },
     image: {
-        type: String,
+        url: {
+            type: String,
+            required: true
+        },
+        publicId: {
+            type: String,
+            required: true
+        }
     },
     isAvailable: {
         type: Boolean,

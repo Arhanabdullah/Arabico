@@ -17,6 +17,10 @@ if(!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD || !process.env.AD
     throw new Error("Admin credentials are not defined in environment variables")
 }
 
+if(!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET){
+    throw new Error("Cloudinary credentials are not defined in environment variables")
+}
+
 
 
 const config = {
@@ -29,6 +33,11 @@ const config = {
         username: process.env.ADMIN_USERNAME,
         password: process.env.ADMIN_PASSWORD,
         email: process.env.ADMIN_EMAIL
+    },
+    cloudinary: {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        apiSecret: process.env.CLOUDINARY_API_SECRET
     }
 };
 

@@ -1,5 +1,6 @@
 const categoryModel = require('../models/category.model');
 const menuModel = require('../models/menu.model');
+const { uploadOnCloudinary } = require('../utils/cloudinary');
 
 /**
  * Creates a new menu item in the database
@@ -10,7 +11,14 @@ const menuModel = require('../models/menu.model');
 async function createMenu(req, res) {
 
     const { name, description, price, category, isAvailable } = req.body;
+    const file = req.file;
     try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Image is required"
+            });
+        }
         const categoryExists = await categoryModel.findById(category);
         if (!categoryExists) {
             return res.status(404).json({
@@ -27,12 +35,23 @@ async function createMenu(req, res) {
                 message: 'Menu with this name already exists'
             });
         }
+        const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+        if (!cloudinaryResponse) {
+            return res.status(500).json({
+                success: false,
+                message: "Image upload failed"
+            });
+        }
         const newMenu = await menuModel.create({
             name,
             description,
             price,
             category,
-            isAvailable
+            isAvailable,
+            image: {
+                url: cloudinaryResponse.secure_url,
+                publicId: cloudinaryResponse.public_id
+            }
         });
         return res.status(201).json({
             success: true,

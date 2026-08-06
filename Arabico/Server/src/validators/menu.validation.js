@@ -12,7 +12,7 @@ const createMenuValidationRules = [
         .optional()
         .isString()
         .withMessage("Description must be a string")
-        .isLength({ min: 25,max: 255 })
+        .isLength({ min: 25, max: 255 })
         .withMessage("Description must be less than 255 characters"),
     body("price")
         .notEmpty()
@@ -24,10 +24,10 @@ const createMenuValidationRules = [
         .withMessage("Category is required")
         .isMongoId()
         .withMessage("Invalid category ID"),
-    body("image")
+    body("publicId")
         .optional()
-        .isURL()
-        .withMessage("Invalid image URL"),
+        .isString()
+        .withMessage("Public ID must be a string"),
     body("isAvailable")
         .optional()
         .isBoolean()
