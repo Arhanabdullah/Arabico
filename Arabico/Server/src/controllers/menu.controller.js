@@ -137,25 +137,44 @@ async function getMenuById(req, res) {
 async function updateMenu(req, res) {
     const { id } = req.params;
     const { name, description, price, category, isAvailable } = req.body;
-
+    const file = req.file;
     try {
-        const categoryExists = await categoryModel.findById(category);
-        if (!categoryExists) {
+        const menu = await menuModel.findById(id);
+        if (!menu) {
             return res.status(404).json({
                 success: false,
-                message: 'Category not found'
-            });
+                message: "Cannot find the item"
+            })
         }
-
-        const existingMenu = await menuModel.findOne({
-            name: new RegExp(`^${name}$`, "i"),
-            _id: { $ne: id }
-        });
-        if (existingMenu) {
-            return res.status(409).json({
-                success: false,
-                message: 'Menu with this name already exists'
+        if (category !== undefined) {
+            const categoryExists = await categoryModel.findById(category);
+            if (!categoryExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Category not found'
+                });
+            }
+        }
+        if (name !== undefined) {
+            const existingMenu = await menuModel.findOne({
+                name: new RegExp(`^${name}$`, "i"),
+                _id: { $ne: id }
             });
+            if (existingMenu) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Menu with this name already exists'
+                });
+            }
+        }
+        if (req.file !== undefined) {
+            const updateImageOnCloudinary = await uploadOnCloudinary(req.file.path);
+            if (!updateImageOnCloudinary) {
+                return res.status(500).json({
+                    success: false,
+                    message: "Image upload failed"
+                });
+            }
         }
 
         const updatedMenu = await menuModel.findByIdAndUpdate(
@@ -165,6 +184,10 @@ async function updateMenu(req, res) {
                 description,
                 price,
                 category,
+                image: {
+                    url: updateImageOnCloudinary.secure_url,
+                    publicId: updateImageOnCloudinary.public_id
+                },
                 isAvailable
             },
             {
@@ -173,6 +196,7 @@ async function updateMenu(req, res) {
             }
         ).populate("category", "name");
 
+        await deleteFromCloudinary(menu.image.publicId); // Delete the old image from Cloudinary after successful update
         if (!updatedMenu) {
             return res.status(404).json({
                 success: false,

@@ -28,4 +28,19 @@ const uploadOnCloudinary = async (filePath) => {
         }
     }
 }
-module.exports = { uploadOnCloudinary };
+
+const deleteFromCloudinary = async (publicId) => {
+    try{
+        if (!publicId) {
+            throw new Error('Public ID is required for deleting from Cloudinary.');
+        }
+        const response = await cloudinary.uploader.destroy(publicId,{
+            resource_type: 'image' // Specify the resource type if needed
+        });
+        return response;
+    } catch (error) {
+        console.error('Error deleting from Cloudinary:', error);
+        throw error;
+    }
+}
+module.exports = { uploadOnCloudinary, deleteFromCloudinary };
