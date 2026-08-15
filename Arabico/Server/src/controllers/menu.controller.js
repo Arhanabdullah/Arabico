@@ -271,11 +271,28 @@ async function updateMenu(req, res) {
 async function deleteMenu(req, res) {
     const { id } = req.params;
     try {
-        const deletedMenu = await menuModel.findByIdAndDelete(id);
-        if (!deletedMenu) {
+        const menu = await menuModel.findById(id);
+        if (!menu) {
             return res.status(404).json({
                 success: false,
                 message: 'Menu not found'
+            });
+        }
+        
+        if (menu.image && menu.image.publicId) {
+            const deleteImage = await deleteFromCloudinary(menu.image.publicId);
+            if (!deleteImage) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to delete image from Cloudinary'
+                });
+            }
+        }
+        const deletedMenu = await menuModel.findByIdAndDelete(id);
+        if (!deletedMenu) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to delete menu item'
             });
         }
         return res.status(200).json({
@@ -284,7 +301,7 @@ async function deleteMenu(req, res) {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Internal server error'
         });
