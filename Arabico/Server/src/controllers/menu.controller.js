@@ -1,6 +1,6 @@
 const categoryModel = require('../models/category.model');
 const menuModel = require('../models/menu.model');
-const { uploadOnCloudinary } = require('../utils/cloudinary');
+const { uploadOnCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 /**
  * Creates a new menu item in the database
@@ -136,25 +136,37 @@ async function getMenuById(req, res) {
  */
 async function updateMenu(req, res) {
     const { id } = req.params;
-    const { name, description, price, category, isAvailable } = req.body;
-    const file = req.file;
+    const {
+        name,
+        description,
+        price,
+        category,
+        isAvailable
+    } = req.body;
+    let newImage = null;
     try {
+        // Find existing menu
         const menu = await menuModel.findById(id);
         if (!menu) {
             return res.status(404).json({
                 success: false,
                 message: "Cannot find the item"
-            })
+            });
         }
+        // Prepare update data
+        const updateData = {};
+        // Validate and update category if provided
         if (category !== undefined) {
             const categoryExists = await categoryModel.findById(category);
             if (!categoryExists) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Category not found'
+                    message: "Category not found"
                 });
             }
+            updateData.category = category;
         }
+        // Check duplicate name if name is being changed
         if (name !== undefined) {
             const existingMenu = await menuModel.findOne({
                 name: new RegExp(`^${name}$`, "i"),
@@ -163,61 +175,92 @@ async function updateMenu(req, res) {
             if (existingMenu) {
                 return res.status(409).json({
                     success: false,
-                    message: 'Menu with this name already exists'
+                    message: "Menu with this name already exists"
                 });
             }
+            updateData.name = name;
         }
-        if (req.file !== undefined) {
-            const updateImageOnCloudinary = await uploadOnCloudinary(req.file.path);
-            if (!updateImageOnCloudinary) {
+        // Add other provided fields
+        if (description !== undefined) {
+            updateData.description = description;
+        }
+        if (price !== undefined) {
+            updateData.price = price;
+        }
+        if (isAvailable !== undefined) {
+            updateData.isAvailable = isAvailable;
+        }
+        // Handle new image
+        if (req.file) {
+            newImage = await uploadOnCloudinary(req.file.path);
+            if (!newImage) {
                 return res.status(500).json({
                     success: false,
                     message: "Image upload failed"
                 });
             }
+            updateData.image = {
+                url: newImage.secure_url,
+                publicId: newImage.public_id
+            };
         }
-
-        const updatedMenu = await menuModel.findByIdAndUpdate(
-            id,
-            {
-                name,
-                description,
-                price,
-                category,
-                image: {
-                    url: updateImageOnCloudinary.secure_url,
-                    publicId: updateImageOnCloudinary.public_id
-                },
-                isAvailable
-            },
-            {
-                new: true,
-                runValidators: true
-            }
-        ).populate("category", "name");
-
-        await deleteFromCloudinary(menu.image.publicId); // Delete the old image from Cloudinary after successful update
-        if (!updatedMenu) {
-            return res.status(404).json({
+        // Make sure there is something to update
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({
                 success: false,
-                message: 'Menu not found'
+                message: "No fields provided for update"
             });
         }
-
+        // Update menu in MongoDB
+        const updatedMenu = await menuModel
+            .findByIdAndUpdate(
+                id,
+                updateData,
+                {
+                    new: true,
+                    runValidators: true
+                }
+            )
+            .populate("category", "name");
+        // If DB update failed, clean up newly uploaded image
+        if (!updatedMenu) {
+            if (newImage) {
+                await deleteFromCloudinary(newImage.public_id);
+            }
+            return res.status(404).json({
+                success: false,
+                message: "Menu not found"
+            });
+        }
+        // Delete old image only if a new image was successfully saved
+        if (newImage && menu.image?.publicId) {
+            await deleteFromCloudinary(menu.image.publicId);
+        }
+        // Return updated menu
         return res.status(200).json({
             success: true,
-            message: 'Item updated successfully',
+            message: "Item updated successfully",
             data: updatedMenu
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        // Cleanup newly uploaded image if something fails
+        if (newImage) {
+            try {
+                await deleteFromCloudinary(newImage.public_id);
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to clean up new Cloudinary image:",
+                    cleanupError
+                );
+            }
+        }
+        return res.status(500).json({
             success: false,
-            message: 'Internal server error'
+            message: "Internal server error"
         });
     }
 }
-
 /**
  * Deletes a menu item from the database
  * DELETE method
