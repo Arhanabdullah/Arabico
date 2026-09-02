@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const orderModel = require('../models/order.model');
 const tableModel = require('../models/table.model');
 const menuModel = require('../models/menu.model');
@@ -14,6 +15,8 @@ async function createOrder(req, res) {
     } = req.body;
 
     try {
+        const session = await mongoose.startSession();
+        session.startTransaction();
         //Check table for dine-in orders
         let existingTable = null;
         if (orderType === 'dine_in') {
@@ -63,7 +66,8 @@ async function createOrder(req, res) {
         //Generate a unique order number using the counter model
         const orderNumber = await counterModel.getNextSequence('order');
         //Create the order
-        const orderCreation = await orderModel.create({
+        const [orderCreation] = await orderModel.create(
+            [{
             orderNumber,
             orderType,
             table: orderType === 'dine_in'
@@ -80,25 +84,31 @@ async function createOrder(req, res) {
             deliveryAddress: orderType === 'delivery'
                 ? deliveryAddress
                 : null,
-            createdBy: req.user._id
-        });
+            createdBy: req.user._id,
+        }],
+            { session }
+        );
 
         //Mark table as occupied for dine-in orders
         if (orderType === 'dine_in') {
             existingTable.status = 'occupied';
-            await existingTable.save();
+            await existingTable.save({ session });
         }
+        await session.commitTransaction();
         return res.status(201).json({
             success: true,
             message: 'Order created successfully',
-            data: orderCreation
+            data: orderCreation,
         });
     } catch (error) {
+        await session.abortTransaction();
         console.error(error);
         return res.status(500).json({
             success: false,
             message: 'Internal server error'
         });
+    }finally {
+        await session.endSession();
     }
 }
 
